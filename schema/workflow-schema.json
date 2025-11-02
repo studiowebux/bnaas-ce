@@ -1,0 +1,328 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/studiowebux/botnetasaservice/schema/workflow-schema.json",
+  "title": "Graph Executor Workflow",
+  "description": "Schema for Graph Executor workflow configuration files (YAML or JSON)",
+  "type": "object",
+  "required": ["config", "initialState", "graph"],
+  "properties": {
+    "initialState": {
+      "type": "object",
+      "description": "Initial state variables available at workflow start",
+      "additionalProperties": true,
+      "examples": [
+        {
+          "user_id": 1,
+          "api_token": "${API_TOKEN}"
+        }
+      ]
+    },
+    "config": {
+      "type": "object",
+      "description": "Global configuration for the workflow",
+      "required": ["verbose", "http"],
+      "properties": {
+        "verbose": {
+          "type": "boolean",
+          "description": "Enable verbose logging",
+          "default": false
+        },
+        "http": {
+          "type": "object",
+          "description": "HTTP configuration for API requests",
+          "required": ["base_url"],
+          "properties": {
+            "base_url": {
+              "type": "string",
+              "description": "Base URL for HTTP requests (supports ${VAR} interpolation)",
+              "examples": [
+                "https://api.example.com",
+                "${API_BASE_URL}"
+              ]
+            },
+            "headers": {
+              "type": "object",
+              "description": "Default headers for all HTTP requests",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "examples": [
+                {
+                  "Authorization": "Bearer ${API_TOKEN}",
+                  "Content-Type": "application/json"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "variables": {
+      "type": "object",
+      "description": "Named variables for reuse throughout the workflow",
+      "additionalProperties": true
+    },
+    "before": {
+      "type": "object",
+      "description": "Hooks to execute before workflow execution",
+      "properties": {
+        "all": {
+          "type": "object",
+          "description": "Hooks executed before every node",
+          "additionalProperties": {
+            "$ref": "#/definitions/beforeHook"
+          }
+        },
+        "start": {
+          "type": "object",
+          "description": "Hooks executed once at the start",
+          "additionalProperties": {
+            "$ref": "#/definitions/beforeHook"
+          }
+        }
+      }
+    },
+    "conditions": {
+      "type": "object",
+      "description": "Named conditions for reuse in edges",
+      "additionalProperties": {
+        "$ref": "#/definitions/condition"
+      }
+    },
+    "graph": {
+      "type": "object",
+      "description": "The workflow graph nodes",
+      "additionalProperties": {
+        "$ref": "#/definitions/node"
+      },
+      "minProperties": 1
+    }
+  },
+  "definitions": {
+    "beforeHook": {
+      "type": "object",
+      "required": ["executor"],
+      "properties": {
+        "executor": {
+          "$ref": "#/definitions/executor"
+        }
+      }
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/simpleCondition"
+        },
+        {
+          "$ref": "#/definitions/andCondition"
+        },
+        {
+          "$ref": "#/definitions/orCondition"
+        }
+      ]
+    },
+    "simpleCondition": {
+      "type": "object",
+      "required": ["path", "operator", "value"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to the value in state (supports nested paths like 'user.name')"
+        },
+        "operator": {
+          "type": "string",
+          "enum": ["=", "!=", ">", "<", ">=", "<="],
+          "description": "Comparison operator"
+        },
+        "value": {
+          "description": "Value to compare against",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "andCondition": {
+      "type": "object",
+      "required": ["and"],
+      "properties": {
+        "and": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/condition"
+          },
+          "minItems": 2
+        }
+      }
+    },
+    "orCondition": {
+      "type": "object",
+      "required": ["or"],
+      "properties": {
+        "or": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/condition"
+          },
+          "minItems": 2
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of this node"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["end"],
+          "description": "Special node type (only 'end' is supported)"
+        },
+        "code": {
+          "type": "integer",
+          "description": "Exit code for 'end' type nodes",
+          "default": 0
+        },
+        "executor": {
+          "$ref": "#/definitions/executor",
+          "description": "The executor to run for this node"
+        },
+        "edges": {
+          "type": "array",
+          "description": "Outgoing edges to other nodes",
+          "items": {
+            "$ref": "#/definitions/edge"
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": ["type"],
+          "properties": {
+            "type": { "const": "end" }
+          }
+        },
+        {
+          "required": ["executor"]
+        }
+      ]
+    },
+    "executor": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/httpExecutor"
+        },
+        {
+          "$ref": "#/definitions/sleepExecutor"
+        },
+        {
+          "$ref": "#/definitions/noneExecutor"
+        },
+        {
+          "$ref": "#/definitions/endExecutor"
+        }
+      ]
+    },
+    "httpExecutor": {
+      "type": "object",
+      "required": ["type", "method", "endpoint"],
+      "properties": {
+        "type": {
+          "const": "http"
+        },
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+          "description": "HTTP method"
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "API endpoint (relative to base_url, supports ${VAR} interpolation)"
+        },
+        "body": {
+          "description": "Request body (for POST, PUT, PATCH)"
+        },
+        "mutate": {
+          "type": "string",
+          "description": "State variable name to store the response"
+        },
+        "headers": {
+          "type": "object",
+          "description": "Additional headers for this request",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "sleepExecutor": {
+      "type": "object",
+      "required": ["type", "value"],
+      "properties": {
+        "type": {
+          "const": "sleep"
+        },
+        "value": {
+          "type": "integer",
+          "description": "Sleep duration in milliseconds",
+          "minimum": 0
+        }
+      }
+    },
+    "noneExecutor": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "const": "none"
+        }
+      },
+      "description": "No-op executor (does nothing, useful for decision points)"
+    },
+    "endExecutor": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "const": "end"
+        },
+        "code": {
+          "type": "integer",
+          "description": "Exit code",
+          "default": 0
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": ["to"],
+      "properties": {
+        "to": {
+          "type": "string",
+          "description": "Target node ID"
+        },
+        "condition": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Reference to a named condition"
+            },
+            {
+              "$ref": "#/definitions/condition",
+              "description": "Inline condition"
+            }
+          ]
+        },
+        "fallback": {
+          "type": "string",
+          "description": "Fallback node if condition fails"
+        }
+      }
+    }
+  }
+}

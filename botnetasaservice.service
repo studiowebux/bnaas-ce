@@ -1,0 +1,15 @@
+[Unit]
+Description=Botnet as a Service Orchestrator
+After=network.target
+
+[Service]
+Type=simple
+User=botnetasaservice
+WorkingDirectory=/srv/botnetasaservice
+ExecStart=/usr/local/bin/bnaas
+Restart=always
+RestartSec=10
+EnvironmentFile=./.env
+
+[Install]
+WantedBy=multi-user.target

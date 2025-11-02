@@ -1,0 +1,5 @@
+bin/
+!.env.example
+.env
+tasks/*.{yml,json}
+.DS_Store

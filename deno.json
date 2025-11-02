@@ -1,0 +1,21 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-env --allow-read --allow-write --allow-run --allow-net --watch src/server.ts",
+    "build": "deno compile --allow-env --allow-read --allow-write --allow-run --allow-net --output bin/bnaas src/server.ts",
+    "build:executor": "deno compile --allow-env --allow-read --allow-write --allow-net --output bin/bnaas-cli src/runner/cli.ts",
+    "build:all": "deno task build && deno task build:executor",
+    "start": "deno run -A src/server.ts",
+    "executor": "deno run --allow-env --allow-read --allow-write --allow-net src/runner/cli.ts"
+  },
+  "imports": {
+    "yaml": "jsr:@std/yaml",
+    "hono": "npm:hono",
+    "hono/cors": "npm:hono/cors",
+    "hono/logger": "npm:hono/logger",
+    "hono/serve-static": "npm:hono/deno",
+    "cron": "npm:cron",
+    "@std/cli": "jsr:@std/cli@1.0.9/parse-args",
+    "@std/path": "jsr:@std/path@1.0.8",
+    "@std/dotenv": "jsr:@std/dotenv@0.225.2"
+  }
+}

@@ -1,0 +1,39 @@
+name: publish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  build-and-compile:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Compile Web App
+        run: |
+          deno compile --allow-env --allow-read --allow-write --allow-run --allow-net --output bin/bnaas-${{ matrix.platform }} src/server.ts
+          chmod +x bin/bnaas-${{ matrix.platform }}
+
+      - name: Compile CLI
+        run: |
+          deno compile --allow-env --allow-read --allow-write --allow-run --allow-net --output bin/bnaas-cli-${{ matrix.platform }} src/runner/cli.ts
+          chmod +x bin/bnaas-cli-${{ matrix.platform }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            bin/bnaas-${{ matrix.platform }}
+            bin/bnaas-cli-${{ matrix.platform }}

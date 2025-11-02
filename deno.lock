@@ -1,0 +1,53 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@std/cli@1.0.9": "1.0.9",
+    "jsr:@std/dotenv@0.225.2": "0.225.2",
+    "jsr:@std/path@1.0.8": "1.0.8",
+    "jsr:@std/yaml@*": "1.0.9",
+    "npm:cron@*": "4.3.3",
+    "npm:hono@*": "4.8.10"
+  },
+  "jsr": {
+    "@std/cli@1.0.9": {
+      "integrity": "557e5865af000efbf3f737dcfea5b8ab86453594f4a9cd8d08c9fa83d8e3f3bc"
+    },
+    "@std/dotenv@0.225.2": {
+      "integrity": "e2025dce4de6c7bca21dece8baddd4262b09d5187217e231b033e088e0c4dd23"
+    },
+    "@std/path@1.0.8": {
+      "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
+    },
+    "@std/yaml@1.0.9": {
+      "integrity": "6bad3dc766dd85b4b37eabcba81b6aa4eac7a392792ae29abcfb0f90602d55bb"
+    }
+  },
+  "npm": {
+    "@types/luxon@3.7.1": {
+      "integrity": "sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg=="
+    },
+    "cron@4.3.3": {
+      "integrity": "sha512-B/CJj5yL3sjtlun6RtYHvoSB26EmQ2NUmhq9ZiJSyKIM4K/fqfh9aelDFlIayD2YMeFZqWLi9hHV+c+pq2Djkw==",
+      "dependencies": [
+        "@types/luxon",
+        "luxon"
+      ]
+    },
+    "hono@4.8.10": {
+      "integrity": "sha512-DRMYbR3aFk6YET1FCSAFbgF2cWYTz5j0YAFYPECx9fmrbKBDAYnWU+YCgRTpOaatxMYN6e68U/2IG39zRP4W/A=="
+    },
+    "luxon@3.7.1": {
+      "integrity": "sha512-RkRWjA926cTvz5rAb1BqyWkKbbjzCGchDUIKMCUvNi17j6f6j8uHGDV82Aqcqtzd+icoYpELmG3ksgGiFNNcNg=="
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@std/cli@1.0.9",
+      "jsr:@std/dotenv@0.225.2",
+      "jsr:@std/path@1.0.8",
+      "jsr:@std/yaml@*",
+      "npm:cron@*",
+      "npm:hono@*"
+    ]
+  }
+}

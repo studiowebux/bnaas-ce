@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=../schema/workflow-schema.json
+# cp .env.example .env && bnaas-cli workflow-example.yaml
+# Example workflow configuration for Graph Executor
+# This demonstrates the basic features and syntax
+
+# Initial state - available at the start of execution
+initialState:
+  user_id: 1
+
+config:
+  verbose: true
+  http:
+    base_url: "${secret.API_BASE_URL}"
+    headers:
+      Content-Type: "application/json"
+      User-Agent: "Graph-Executor/1.0"
+
+graph:
+  start:
+    description: "Fetch user information"
+    executor:
+      type: http
+      method: GET
+      endpoint: "/users/{{user_id}}"
+      mutate: "user"
+    edges:
+      - to: get_posts
+
+  get_posts:
+    description: "Fetch user's posts"
+    executor:
+      type: http
+      method: GET
+      endpoint: "/posts?userId={{user_id}}"
+      mutate: "posts"
+    edges:
+      - to: check_posts
+
+  check_posts:
+    description: "Check if user has posts"
+    executor:
+      type: none
+    edges:
+      - to: process_posts
+        condition:
+          path: "posts.length"
+          operator: ">"
+          value: 0
+      - to: no_posts
+        condition:
+          path: "posts.length"
+          operator: "="
+          value: 0
+
+  process_posts:
+    description: "Process the posts"
+    executor:
+      type: none
+    edges:
+      - to: success
+
+  no_posts:
+    description: "Handle no posts case"
+    executor:
+      type: none
+    edges:
+      - to: success
+
+  success:
+    description: "Successful completion"
+    type: end
+    code: 0
+
+  error:
+    description: "Error completion"
+    type: end
+    code: 1
